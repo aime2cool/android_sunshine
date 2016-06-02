@@ -23,7 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback{
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 //    private final String FORECASTFRAGMENT_TAG = "FFTAG";
@@ -56,7 +56,11 @@ public class MainActivity extends ActionBarActivity {
             }
         } else {
             mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
         }
+        ForecastFragment ff = (ForecastFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
+        ff.setUseTodayLayout(!mTwoPane);
+        Log.d(LOG_TAG, "mTwoPane="+mTwoPane);
     }
 
     @Override
@@ -123,6 +127,28 @@ public class MainActivity extends ActionBarActivity {
                 df.onLocationChanged(location);
             }
             mLocation = location;
+        }
+    }
+
+    @Override
+    public void onItemSelected(Uri dateUri) {
+        if (mTwoPane) {
+            DetailFragment details = (DetailFragment)
+                    getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
+            if (details == null || details.getDateUri() != dateUri) {
+                // Make new fragment to show this selection.
+                details = DetailFragment.newInstance(dateUri);
+
+                // Execute a transaction, replacing any existing fragment
+                // with this one inside the frame.
+                getSupportFragmentManager().beginTransaction().
+                        replace(R.id.weather_detail_container, details, DETAILFRAGMENT_TAG).commit();
+            }
+
+        }
+        else {
+            Intent intent = new Intent(this, DetailActivity.class).setData(dateUri);
+            startActivity(intent);
         }
     }
 }
